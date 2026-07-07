@@ -1,0 +1,12 @@
+{
+  "name": "concorrentes-ml",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Painel de metricas de concorrentes - Mercado Livre (Ricapet)",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "redis": "^4.6.13"
+  }
+}
