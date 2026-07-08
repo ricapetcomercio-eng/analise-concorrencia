@@ -102,6 +102,12 @@ module.exports = async function handler(req, res) {
         for (const comp of payload.concorrentes || []) {
           if (!concorrentesMap[comp.nome]) concorrentesMap[comp.nome] = {};
 
+          // Alguns concorrentes têm múltiplos anúncios com o MESMO nome
+          // (ex: variações de catálogo do Mercado Livre). Sem esse contador,
+          // o segundo anúncio com nome repetido sobrescrevia o primeiro no
+          // mesmo dia, fazendo produtos "sumirem" do painel.
+          const contagemNomes = {};
+
           (comp.produtos || []).forEach((linha, idx) => {
             const chaves = Object.keys(linha);
             const anuncioKey =
@@ -111,15 +117,19 @@ module.exports = async function handler(req, res) {
             const nomeProduto = anuncioKey ? linha[anuncioKey] : null;
             if (!nomeProduto) return;
 
+            contagemNomes[nomeProduto] = (contagemNomes[nomeProduto] || 0) + 1;
+            const ocorrencia = contagemNomes[nomeProduto];
+            const nomeChave = ocorrencia > 1 ? `${nomeProduto} (${ocorrencia})` : nomeProduto;
+
             const vendasKey = chaves.find((k) => k.toLowerCase().includes("venda") && k.toLowerCase().includes("brut"));
             const qtdKey = chaves.find((k) => k.toLowerCase().includes("quantidade"));
             const visitasKey = chaves.find((k) => k.toLowerCase().includes("visita"));
             const conversaoKey = chaves.find((k) => k.toLowerCase().includes("convers"));
 
-            if (!concorrentesMap[comp.nome][nomeProduto]) {
-              concorrentesMap[comp.nome][nomeProduto] = {};
+            if (!concorrentesMap[comp.nome][nomeChave]) {
+              concorrentesMap[comp.nome][nomeChave] = {};
             }
-            concorrentesMap[comp.nome][nomeProduto][dia] = {
+            concorrentesMap[comp.nome][nomeChave][dia] = {
               posicao: idx + 1,
               vendas_brutas: vendasKey ? linha[vendasKey] : null,
               quantidade_de_vendas: qtdKey ? linha[qtdKey] : null,
