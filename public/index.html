@@ -949,6 +949,12 @@ function renderPainelConcorrentes() {
 
   el.innerHTML = html;
 
+  // Rola a tabela de histórico até o final (dia mais recente), em vez de
+  // deixar o usuário precisar arrastar do primeiro dia até o último.
+  el.querySelectorAll('.hist-table-wrap').forEach(wrap => {
+    wrap.scrollLeft = wrap.scrollWidth;
+  });
+
   el.querySelectorAll('.comp-pills button').forEach(btn => {
     btn.addEventListener('click', () => selecionarConcorrente(btn.dataset.nome));
   });
