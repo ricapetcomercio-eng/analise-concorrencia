@@ -366,6 +366,16 @@
     flex-shrink: 0;
   }
 
+  .produto-link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .produto-link:hover {
+    color: var(--accent, #1e5eff);
+    text-decoration: underline;
+  }
+
   .spark {
     display: inline-block;
     vertical-align: middle;
@@ -692,6 +702,19 @@ function trendHTML(delta, eraZero) {
   return `<span class="trend ${cls}">${arrow} ${texto}</span>`;
 }
 
+function buildBuscaMercadoLivreUrl(nome) {
+  // remove o sufixo "(2)", "(3)" etc. que usamos só para diferenciar
+  // produtos com nome duplicado no mesmo concorrente
+  const nomeBase = nome.replace(/\s*\(\d+\)\s*$/, '');
+  const slug = nomeBase
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove acentos
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-');
+  return `https://lista.mercadolivre.com.br/${encodeURIComponent(slug)}`;
+}
+
 function renderTabelaMetrica(nomesProdutoHist, produtosHist, datas, metricKey) {
   const nomes = [...nomesProdutoHist];
   const ultimaData = datas[datas.length - 1];
@@ -715,8 +738,13 @@ function renderTabelaMetrica(nomesProdutoHist, produtosHist, datas, metricKey) {
     const thumbHtml = imagemUrl
       ? `<img class="produto-thumb" src="${imagemUrl}" alt="" loading="lazy" onerror="this.style.display='none'">`
       : `<div class="produto-thumb"></div>`;
+    // o Mercado Livre não expõe um link direto do anúncio nessa tabela de
+    // métricas, então linkamos para a busca pelo nome do produto (sem o
+    // sufixo "(2)", "(3)" que usamos aqui só para diferenciar duplicatas)
+    const linkUrl = buildBuscaMercadoLivreUrl(nome);
+    const nomeHtml = `<a class="produto-link" href="${linkUrl}" target="_blank" rel="noopener noreferrer">${nome}</a>`;
 
-    html += `<tr><td class="produto-cell"><div class="produto-linha">${thumbHtml}<span>${nome}</span></div></td>`;
+    html += `<tr><td class="produto-cell"><div class="produto-linha">${thumbHtml}${nomeHtml}</div></td>`;
     let valorAnterior = null;
     datas.forEach(d => {
       const registro = (produtosHist[nome] || {})[d];
