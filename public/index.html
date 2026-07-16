@@ -432,9 +432,9 @@
 </header>
 
 <nav class="view-tabs">
-  <button id="tabAtual" class="active" onclick="mostrarView('atual')">Snapshot atual</button>
+  <button id="tabAtual" onclick="mostrarView('atual')">Snapshot atual</button>
   <button id="tabHistorico" onclick="mostrarView('historico')">Histórico</button>
-  <button id="tabConcorrentes" onclick="mostrarView('concorrentes')">Concorrentes</button>
+  <button id="tabConcorrentes" class="active" onclick="mostrarView('concorrentes')">Concorrentes</button>
 </nav>
 
 <main id="content">
@@ -991,7 +991,7 @@ function renderPainelConcorrentes() {
   });
 }
 
-loadData();
+loadConcorrentes();
 </script>
 
 </body>
