@@ -1,79 +1,117 @@
 // api/concorrentes.js
 //
 // Variáveis de ambiente necessárias no Vercel (Settings > Environment Variables):
-//   REDIS_URL                   -> URL de conexão do Redis (ex: Upstash)
+//   TURSO_DATABASE_URL          -> URL do banco Turso
+//   TURSO_AUTH_TOKEN            -> token de autenticação do Turso
 //   CONCORRENTES_WEBHOOK_SECRET -> chave que o scraper local usa pra autenticar
 //
-// Rotas:
-//   POST /api/concorrentes          -> recebe o payload do scraper local e salva
-//   GET  /api/concorrentes          -> devolve o último snapshot salvo
-//   GET  /api/concorrentes?data=YYYY-MM-DD -> devolve o snapshot daquele dia
+// Migrado de Redis (Upstash, compartilhado com outros projetos — Painel
+// Entrega Turbo e painelvendas-seven — e que por isso estourava a cota de
+// 500 mil requisições/mês) para Turso (SQLite dedicado só a este projeto).
+//
+// Rotas (inalteradas — só a forma de armazenamento mudou):
+//   POST /api/concorrentes                          -> recebe o payload do scraper local e salva
+//   GET  /api/concorrentes                           -> devolve o último snapshot salvo
+//   GET  /api/concorrentes?data=YYYY-MM-DD           -> devolve o snapshot daquele dia
+//   GET  /api/concorrentes?action=historico          -> posição por subcategoria ao longo do tempo
+//   GET  /api/concorrentes?action=historico_concorrentes -> métricas por concorrente/produto ao longo do tempo
 
-const { createClient } = require("redis");
+const { getDb } = require('../lib/db');
 
-const REDIS_KEY = "concorrentes:ultimo_snapshot";
-const REDIS_HISTORICO_PREFIX = "concorrentes:historico:";
-const REDIS_DATAS_SET = "concorrentes:datas";
+// Cria as tabelas se ainda não existirem — barato o suficiente (IF NOT
+// EXISTS) para rodar em toda chamada, sem precisar de um passo de setup
+// separado.
+async function garantirTabelas(db) {
+  await db.execute(`CREATE TABLE IF NOT EXISTS concorrentes_historico (
+    data TEXT PRIMARY KEY,
+    payload TEXT,
+    atualizado_em INTEGER
+  )`);
+  await db.execute(`CREATE TABLE IF NOT EXISTS concorrentes_kv (
+    chave TEXT PRIMARY KEY,
+    valor TEXT,
+    atualizado_em INTEGER
+  )`);
+}
 
-let redisClient;
-async function getRedis() {
-  if (!redisClient) {
-    redisClient = createClient({ url: process.env.REDIS_URL });
-    redisClient.on("error", (err) => console.error("Redis error:", err));
-    await redisClient.connect();
-  }
-  return redisClient;
+async function salvarSnapshotDia(db, dataDia, payloadStr) {
+  await db.execute({
+    sql: `INSERT INTO concorrentes_historico (data, payload, atualizado_em) VALUES (?, ?, ?)
+          ON CONFLICT(data) DO UPDATE SET payload = excluded.payload, atualizado_em = excluded.atualizado_em`,
+    args: [dataDia, payloadStr, Date.now()],
+  });
+}
+
+async function salvarKV(db, chave, valor) {
+  await db.execute({
+    sql: `INSERT INTO concorrentes_kv (chave, valor, atualizado_em) VALUES (?, ?, ?)
+          ON CONFLICT(chave) DO UPDATE SET valor = excluded.valor, atualizado_em = excluded.atualizado_em`,
+    args: [chave, valor, Date.now()],
+  });
+}
+
+async function buscarKV(db, chave) {
+  const rs = await db.execute({ sql: 'SELECT valor FROM concorrentes_kv WHERE chave = ?', args: [chave] });
+  return rs.rows[0] ? rs.rows[0].valor : null;
+}
+
+async function buscarSnapshotDia(db, dataDia) {
+  const rs = await db.execute({ sql: 'SELECT payload FROM concorrentes_historico WHERE data = ?', args: [dataDia] });
+  return rs.rows[0] ? rs.rows[0].payload : null;
+}
+
+async function listarDatas(db) {
+  const rs = await db.execute('SELECT data FROM concorrentes_historico ORDER BY data ASC');
+  return rs.rows.map((r) => r.data);
 }
 
 module.exports = async function handler(req, res) {
-  const redis = await getRedis();
+  const db = getDb();
+  await garantirTabelas(db);
 
-  if (req.method === "POST") {
-    const authHeader = req.headers["authorization"] || "";
+  if (req.method === 'POST') {
+    const authHeader = req.headers['authorization'] || '';
     const expected = `Bearer ${process.env.CONCORRENTES_WEBHOOK_SECRET}`;
     if (authHeader !== expected) {
-      return res.status(401).json({ error: "não autorizado" });
+      return res.status(401).json({ error: 'não autorizado' });
     }
 
     const payload = req.body;
     if (!payload || !payload.categorias) {
-      return res.status(400).json({ error: "payload inválido" });
+      return res.status(400).json({ error: 'payload inválido' });
     }
 
     const dataStr = JSON.stringify(payload);
-    await redis.set(REDIS_KEY, dataStr);
+    await salvarKV(db, 'ultimo_snapshot', dataStr);
 
     const dataDia = payload.coletado_em.slice(0, 10);
-    const diaKey = REDIS_HISTORICO_PREFIX + dataDia;
-    await redis.set(diaKey, dataStr);
-    await redis.sAdd(REDIS_DATAS_SET, dataDia);
+    await salvarSnapshotDia(db, dataDia, dataStr);
 
     return res.status(200).json({ ok: true, subcategorias: payload.categorias.length });
   }
 
-  if (req.method === "GET") {
+  if (req.method === 'GET') {
     const { data, action } = req.query;
 
-    if (action === "historico") {
-      const datas = await redis.sMembers(REDIS_DATAS_SET);
-      datas.sort();
+    if (action === 'historico') {
+      const datas = await listarDatas(db);
 
       // subcategoriaMap[subcategoria][vendedor][data] = posicao
       const subcategoriaMap = {};
 
       for (const dia of datas) {
-        const raw = await redis.get(REDIS_HISTORICO_PREFIX + dia);
+        const raw = await buscarSnapshotDia(db, dia);
         if (!raw) continue;
         const payload = JSON.parse(raw);
 
         for (const cat of payload.categorias || []) {
-          const subNome = cat.subcategoria || "(padrão)";
+          const subNome = cat.subcategoria || '(padrão)';
           if (!subcategoriaMap[subNome]) subcategoriaMap[subNome] = {};
 
           for (const linha of cat.sua_posicao || []) {
             const chaves = Object.keys(linha);
-            const vendedorKey = chaves.find((k) => k.toLowerCase().includes("vendedor"));
-            const posicaoKey = chaves.find((k) => k.toLowerCase().includes("posi"));
+            const vendedorKey = chaves.find((k) => k.toLowerCase().includes('vendedor'));
+            const posicaoKey = chaves.find((k) => k.toLowerCase().includes('posi'));
             const vendedor = vendedorKey ? linha[vendedorKey] : null;
             const posicao = posicaoKey ? linha[posicaoKey] : null;
             if (!vendedor) continue;
@@ -87,15 +125,14 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({ datas, subcategorias: subcategoriaMap });
     }
 
-    if (action === "historico_concorrentes") {
-      const datas = await redis.sMembers(REDIS_DATAS_SET);
-      datas.sort();
+    if (action === 'historico_concorrentes') {
+      const datas = await listarDatas(db);
 
       // concorrentesMap[nomeConcorrente][nomeProduto][data] = { vendas_brutas, quantidade_de_vendas, visitas, conversao, posicao }
       const concorrentesMap = {};
 
       for (const dia of datas) {
-        const raw = await redis.get(REDIS_HISTORICO_PREFIX + dia);
+        const raw = await buscarSnapshotDia(db, dia);
         if (!raw) continue;
         const payload = JSON.parse(raw);
 
@@ -111,8 +148,8 @@ module.exports = async function handler(req, res) {
           (comp.produtos || []).forEach((linha, idx) => {
             const chaves = Object.keys(linha);
             const anuncioKey =
-              chaves.find((k) => k.toLowerCase().includes("núncio")) ||
-              chaves.find((k) => k.toLowerCase().includes("anuncio")) ||
+              chaves.find((k) => k.toLowerCase().includes('núncio')) ||
+              chaves.find((k) => k.toLowerCase().includes('anuncio')) ||
               chaves[0];
             const nomeProduto = anuncioKey ? linha[anuncioKey] : null;
             if (!nomeProduto) return;
@@ -121,10 +158,10 @@ module.exports = async function handler(req, res) {
             const ocorrencia = contagemNomes[nomeProduto];
             const nomeChave = ocorrencia > 1 ? `${nomeProduto} (${ocorrencia})` : nomeProduto;
 
-            const vendasKey = chaves.find((k) => k.toLowerCase().includes("venda") && k.toLowerCase().includes("brut"));
-            const qtdKey = chaves.find((k) => k.toLowerCase().includes("quantidade"));
-            const visitasKey = chaves.find((k) => k.toLowerCase().includes("visita"));
-            const conversaoKey = chaves.find((k) => k.toLowerCase().includes("convers"));
+            const vendasKey = chaves.find((k) => k.toLowerCase().includes('venda') && k.toLowerCase().includes('brut'));
+            const qtdKey = chaves.find((k) => k.toLowerCase().includes('quantidade'));
+            const visitasKey = chaves.find((k) => k.toLowerCase().includes('visita'));
+            const conversaoKey = chaves.find((k) => k.toLowerCase().includes('convers'));
 
             if (!concorrentesMap[comp.nome][nomeChave]) {
               concorrentesMap[comp.nome][nomeChave] = {};
@@ -145,15 +182,15 @@ module.exports = async function handler(req, res) {
     }
 
     if (data) {
-      const raw = await redis.get(REDIS_HISTORICO_PREFIX + data);
-      if (!raw) return res.status(404).json({ error: "sem dados para essa data" });
+      const raw = await buscarSnapshotDia(db, data);
+      if (!raw) return res.status(404).json({ error: 'sem dados para essa data' });
       return res.status(200).json(JSON.parse(raw));
     }
 
-    const raw = await redis.get(REDIS_KEY);
-    if (!raw) return res.status(404).json({ error: "nenhum snapshot ainda" });
+    const raw = await buscarKV(db, 'ultimo_snapshot');
+    if (!raw) return res.status(404).json({ error: 'nenhum snapshot ainda' });
     return res.status(200).json(JSON.parse(raw));
   }
 
-  return res.status(405).json({ error: "método não suportado" });
-}
+  return res.status(405).json({ error: 'método não suportado' });
+};
