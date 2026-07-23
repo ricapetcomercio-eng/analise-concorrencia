@@ -17,6 +17,9 @@
 //   GET  /api/concorrentes?action=historico_concorrentes -> métricas por concorrente/produto ao longo do tempo
 
 const { getDb } = require('../lib/db');
+// Usado só pela migração única do histórico antigo (action=migrar_historico)
+// — o resto do arquivo não depende mais do Redis.
+const { createClient } = require('redis');
 
 // Cria as tabelas se ainda não existirem — barato o suficiente (IF NOT
 // EXISTS) para rodar em toda chamada, sem precisar de um passo de setup
@@ -65,6 +68,82 @@ async function listarDatas(db) {
   return rs.rows.map((r) => r.data);
 }
 
+// -------- Migração única: Redis antigo (compartilhado) -> Turso --------
+// Só pode rodar depois que a cota do Redis resetar (14/08) — o limite de
+// 500 mil requisições/mês conta LEITURA também, não só escrita. Volume
+// pequeno aqui (15-19 dias), então cabe numa chamada só, sem paginação.
+//
+// Uso: GET /api/concorrentes?action=migrar_historico&secret=SEU_WEBHOOK_SECRET
+async function migrarHistoricoAntigo(req, res, db) {
+  const secretHeader = req.query.secret;
+  if (secretHeader !== process.env.CONCORRENTES_WEBHOOK_SECRET) {
+    return res.status(401).json({ error: 'não autorizado' });
+  }
+
+  const REDIS_URL = process.env.REDIS_URL;
+  if (!REDIS_URL) {
+    return res.status(500).json({ error: 'Variável REDIS_URL não encontrada — necessária só para esta migração única.' });
+  }
+
+  const redisAntigo = createClient({ url: REDIS_URL });
+  redisAntigo.on('error', (err) => console.error('Redis (migração) error:', err));
+  await redisAntigo.connect();
+
+  try {
+    const REDIS_KEY = 'concorrentes:ultimo_snapshot';
+    const REDIS_HISTORICO_PREFIX = 'concorrentes:historico:';
+    const REDIS_DATAS_SET = 'concorrentes:datas';
+
+    const datas = await redisAntigo.sMembers(REDIS_DATAS_SET);
+    let migrados = 0;
+    let jaExistiam = 0;
+
+    for (const dia of datas) {
+      const raw = await redisAntigo.get(REDIS_HISTORICO_PREFIX + dia);
+      if (!raw) continue;
+
+      // ON CONFLICT DO NOTHING: preserva qualquer dia já coletado desde
+      // o apagão, sem sobrescrever com dado antigo.
+      const resultado = await db.execute({
+        sql: `INSERT INTO concorrentes_historico (data, payload, atualizado_em) VALUES (?, ?, ?)
+              ON CONFLICT(data) DO NOTHING`,
+        args: [dia, raw, Date.now()],
+      });
+      if (resultado.rowsAffected > 0) migrados++;
+      else jaExistiam++;
+    }
+
+    // "Último snapshot": só migra se ainda não existir nenhum (não quer
+    // sobrescrever um snapshot mais novo, já coletado desde o apagão).
+    const kvAtual = await db.execute({ sql: 'SELECT valor FROM concorrentes_kv WHERE chave = ?', args: ['ultimo_snapshot'] });
+    let ultimoSnapshotMigrado = false;
+    if (!kvAtual.rows[0]) {
+      const rawUltimo = await redisAntigo.get(REDIS_KEY);
+      if (rawUltimo) {
+        await db.execute({
+          sql: `INSERT INTO concorrentes_kv (chave, valor, atualizado_em) VALUES ('ultimo_snapshot', ?, ?)`,
+          args: [rawUltimo, Date.now()],
+        });
+        ultimoSnapshotMigrado = true;
+      }
+    }
+
+    await redisAntigo.quit();
+
+    return res.status(200).json({
+      ok: true,
+      tipo: 'migrar_historico',
+      dias_encontrados_no_redis: datas.length,
+      dias_migrados: migrados,
+      dias_ja_existentes_ignorados: jaExistiam,
+      ultimo_snapshot_migrado: ultimoSnapshotMigrado,
+    });
+  } catch (err) {
+    await redisAntigo.quit().catch(() => {});
+    return res.status(500).json({ error: err.message });
+  }
+}
+
 module.exports = async function handler(req, res) {
   const db = getDb();
   await garantirTabelas(db);
@@ -92,6 +171,10 @@ module.exports = async function handler(req, res) {
 
   if (req.method === 'GET') {
     const { data, action } = req.query;
+
+    if (action === 'migrar_historico') {
+      return migrarHistoricoAntigo(req, res, db);
+    }
 
     if (action === 'historico') {
       const datas = await listarDatas(db);
