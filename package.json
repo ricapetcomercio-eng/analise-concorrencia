@@ -7,6 +7,6 @@
     "dev": "vercel dev"
   },
   "dependencies": {
-    "redis": "^4.6.13"
+    "@libsql/client": "^0.14.0"
   }
 }
