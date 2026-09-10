@@ -4,6 +4,15 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Concorrentes — Ricapet</title>
+<script>
+  // Rodando dentro de um iframe (ex.: aberto pelo painel-entrega-turbo)?
+  // Nesse caso o painel que hospeda o iframe já mostra a sidebar — não
+  // repete aqui, senão os links "Dashboard"/"Estoque"/etc. desta sidebar
+  // recarregam o painel principal DENTRO do iframe, aninhando sidebars.
+  if (window.self !== window.top) {
+    document.documentElement.classList.add('embutido');
+  }
+</script>
 <style>
   :root {
     --bg: #F6F7F4;
@@ -66,6 +75,8 @@
   .sidebar-footer-name { font-size: 12px; font-weight: 700; color: var(--text); }
   .sidebar-footer-sub { font-size: 11px; color: var(--muted); }
   .conteudo-principal { margin-left: 240px; }
+  html.embutido .sidebar { display: none; }
+  html.embutido .conteudo-principal { margin-left: 0; }
   @media (max-width: 900px) {
     .sidebar { position: static; width: 100%; height: auto; flex-direction: row; flex-wrap: wrap; border-right: none; border-bottom: 1px solid var(--border); }
     .sidebar-brand, .sidebar-footer, .sidebar-separador { display: none; }
