@@ -4,40 +4,76 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Concorrentes — Ricapet</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #F6F7F4;
     --surface: #FFFFFF;
-    --surface-2: #F0F2ED;
-    --border: #E4E7E0;
-    --text: #1E2924;
-    --muted: #74827A;
-    --up: #1E9E74;
-    --up-bg: #E4F5EE;
-    --down: #D65F45;
-    --down-bg: #FBEAE5;
-    --you: #C98A2E;
-    --you-bg: #FBF1E0;
-    --shadow-sm: 0 1px 2px rgba(30, 41, 36, 0.05);
-    --shadow-md: 0 4px 16px rgba(30, 41, 36, 0.06);
+    --surface-2: #FAFBFC;
+    --border: #E6E9ED;
+    --text: #2d3436;
+    --muted: #7f8c96;
+    --up: #16a34a;
+    --up-bg: #dcfce7;
+    --down: #eb5757;
+    --down-bg: #fdeaea;
+    --you: #1d4ed8;
+    --you-bg: #bfdbfe;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+    --brand: #16a34a;
+    --brand-light: #dcfce7;
+    --bg-grad-a: #e3f9ec;
+    --bg-grad-b: #e5f0fd;
   }
 
   * { box-sizing: border-box; }
 
   body {
     margin: 0;
-    background: var(--bg);
+    padding: 0;
+    background: linear-gradient(150deg, var(--bg-grad-a) 0%, var(--bg-grad-b) 100%) fixed;
     color: var(--text);
-    font-family: 'Inter', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 
-  .num { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  /* ---- Sidebar (mesmo padrão do painel-entrega-turbo) ---- */
+  .sidebar {
+    width: 240px; height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000;
+    background: var(--surface); border-right: 1px solid var(--border);
+    padding: 20px 14px; box-sizing: border-box; overflow-y: auto;
+    display: flex; flex-direction: column;
+  }
+  .sidebar-brand { display: flex; align-items: center; gap: 10px; padding: 2px 10px 16px; margin-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .sidebar-brand-icon { width: 34px; height: 34px; border-radius: 9px; background: var(--brand-light); display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+  .sidebar-brand-name { font-size: 14px; font-weight: 800; color: var(--text); line-height: 1.2; }
+  .sidebar-brand-sub { font-size: 11px; color: var(--muted); }
+  .sidebar-titulo { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); padding: 0 10px; margin-bottom: 10px; }
+  .sidebar-link {
+    display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px;
+    color: var(--text); text-decoration: none; font-size: 13px; font-weight: 600; margin-bottom: 4px;
+    white-space: nowrap;
+  }
+  .sidebar-link:hover { background: #f4f5f7; }
+  .sidebar-link.ativo { background: var(--brand); color: #fff; }
+  .sidebar-link.ativo svg { stroke: #fff; }
+  .sidebar-link svg { flex-shrink: 0; }
+  .sidebar-separador { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+  .sidebar-footer { display: flex; align-items: center; gap: 10px; padding: 10px; margin-top: auto; border-top: 1px solid var(--border); }
+  .sidebar-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--brand); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0; }
+  .sidebar-footer-name { font-size: 12px; font-weight: 700; color: var(--text); }
+  .sidebar-footer-sub { font-size: 11px; color: var(--muted); }
+  .conteudo-principal { margin-left: 240px; }
+  @media (max-width: 900px) {
+    .sidebar { position: static; width: 100%; height: auto; flex-direction: row; flex-wrap: wrap; border-right: none; border-bottom: 1px solid var(--border); }
+    .sidebar-brand, .sidebar-footer, .sidebar-separador { display: none; }
+    .conteudo-principal { margin-left: 0; }
+  }
 
   header {
-    padding: 28px clamp(16px, 4vw, 48px) 20px;
+    padding: 20px clamp(16px, 4vw, 48px);
     background: var(--surface);
     border-bottom: 1px solid var(--border);
     display: flex;
@@ -48,38 +84,39 @@
   }
 
   header h1 {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 1.4rem;
+    font-size: 21px;
     font-weight: 700;
     margin: 0;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
   }
 
   header h1 span { color: var(--muted); font-weight: 400; }
 
   nav.view-tabs {
     display: flex;
-    gap: 4px;
-    padding: 0 clamp(16px, 4vw, 48px);
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
+    flex-direction: column;
+    gap: 2px;
   }
 
   nav.view-tabs button {
+    display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
     background: none;
-    border: none;
-    color: var(--muted);
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 0.85rem;
+    border: none; border-left: 3px solid transparent;
+    color: var(--text);
+    font-size: 13px;
     font-weight: 600;
-    padding: 12px 16px;
+    padding: 9px 10px;
+    border-radius: 8px;
     cursor: pointer;
-    border-bottom: 2px solid transparent;
+    font-family: inherit;
   }
 
+  nav.view-tabs button:hover { background: #f4f5f7; }
+
   nav.view-tabs button.active {
-    color: var(--text);
-    border-bottom-color: var(--you);
+    background: var(--brand);
+    color: #fff;
+    font-weight: 700;
   }
 
   .hist-controls {
@@ -97,7 +134,6 @@
     border: 1px solid var(--border);
     border-radius: 6px;
     padding: 6px 10px;
-    font-family: 'Space Grotesk', sans-serif;
     font-size: 0.82rem;
   }
 
@@ -135,7 +171,6 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    font-family: 'JetBrains Mono', monospace;
     font-size: 0.78rem;
     color: var(--muted);
   }
@@ -143,14 +178,14 @@
   .dot {
     width: 7px; height: 7px; border-radius: 50%;
     background: var(--up);
-    box-shadow: 0 0 0 0 rgba(30,158,116,0.6);
+    box-shadow: 0 0 0 0 rgba(22,163,74,0.6);
     animation: pulse 2.2s infinite;
   }
 
   @keyframes pulse {
-    0%   { box-shadow: 0 0 0 0 rgba(30,158,116,0.45); }
-    70%  { box-shadow: 0 0 0 7px rgba(30,158,116,0); }
-    100% { box-shadow: 0 0 0 0 rgba(30,158,116,0); }
+    0%   { box-shadow: 0 0 0 0 rgba(22,163,74,0.45); }
+    70%  { box-shadow: 0 0 0 7px rgba(22,163,74,0); }
+    100% { box-shadow: 0 0 0 0 rgba(22,163,74,0); }
   }
 
   main {
@@ -164,7 +199,6 @@
   }
 
   .cat-title {
-    font-family: 'Space Grotesk', sans-serif;
     font-size: 0.95rem;
     font-weight: 600;
     text-transform: uppercase;
@@ -194,7 +228,6 @@
   }
 
   .table-card h3 {
-    font-family: 'Space Grotesk', sans-serif;
     margin: 0;
     padding: 14px 18px;
     font-size: 0.8rem;
@@ -234,7 +267,6 @@
 
   .empty, .loading, .error {
     color: var(--muted);
-    font-family: 'JetBrains Mono', monospace;
     font-size: 0.85rem;
     padding: 40px 0;
     text-align: center;
@@ -255,7 +287,6 @@
     color: var(--muted);
     padding: 8px 16px;
     border-radius: 20px;
-    font-family: 'Space Grotesk', sans-serif;
     font-size: 0.82rem;
     font-weight: 600;
     cursor: pointer;
@@ -266,7 +297,7 @@
   .comp-pills button.active {
     background: var(--you-bg);
     border-color: var(--you);
-    color: #8A5D1E;
+    color: var(--you);
   }
 
   .comp-pills button:hover:not(.active) {
@@ -286,6 +317,7 @@
   }
 
   .kpi-card {
+    position: relative;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 14px;
@@ -299,19 +331,25 @@
     border-color: var(--you);
   }
 
+  .stat-icon-wrap { position: absolute; top: 16px; right: 16px; width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center; }
+  .stat-icon-wrap svg { width: 16px; height: 16px; }
+  .tone-green { background: var(--brand-light); color: var(--brand); }
+  .tone-blue { background: var(--you-bg); color: var(--you); }
+  .tone-purple { background: #f1e6fb; color: #7c3aed; }
+
   .kpi-card .kpi-label {
-    font-family: 'Space Grotesk', sans-serif;
     font-size: 0.68rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--muted);
+    font-weight: 700;
     margin-bottom: 8px;
+    padding-right: 34px;
   }
 
   .kpi-card .kpi-value {
-    font-family: 'JetBrains Mono', monospace;
     font-size: 1.5rem;
-    font-weight: 600;
+    font-weight: 800;
   }
 
   .kpi-card .kpi-delta {
@@ -320,7 +358,6 @@
     gap: 4px;
     font-size: 0.76rem;
     margin-top: 10px;
-    font-family: 'JetBrains Mono', monospace;
     padding: 3px 9px;
     border-radius: 20px;
   }
@@ -336,7 +373,6 @@
     font-size: 0.68rem;
     font-weight: 600;
     margin-left: 6px;
-    font-family: 'JetBrains Mono', monospace;
     padding: 2px 7px;
     border-radius: 20px;
   }
@@ -407,7 +443,6 @@
     background: none;
     border: none;
     color: var(--muted);
-    font-family: 'Space Grotesk', sans-serif;
     font-size: 0.8rem;
     font-weight: 600;
     padding: 8px 14px;
@@ -423,6 +458,71 @@
 </head>
 <body>
 
+<nav class="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-brand-icon">🐾</div>
+    <div>
+      <div class="sidebar-brand-name">Ricapet</div>
+      <div class="sidebar-brand-sub">Concorrência</div>
+    </div>
+  </div>
+
+  <div class="sidebar-titulo">Painéis Ricapet</div>
+
+  <a class="sidebar-link" href="https://painel-entrega-turbo.vercel.app/">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+    Dashboard
+  </a>
+
+  <a class="sidebar-link ativo" href="#">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-6 3 3 5-7"/></svg>
+    Análise de Concorrência
+  </a>
+
+  <a class="sidebar-link" href="https://painel-estoque-adesivo-three.vercel.app/">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8L12 3 3 8l9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
+    Estoque Adesivo
+  </a>
+
+  <a class="sidebar-link" href="https://ricapet-ponto-admin.vercel.app">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+    Ponto
+  </a>
+
+  <a class="sidebar-link" href="https://painel-entrega-turbo.vercel.app/tv.html" target="_blank" rel="noopener">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+    Painel TV
+  </a>
+
+  <hr class="sidebar-separador">
+
+  <div class="sidebar-titulo">Visões</div>
+
+  <nav class="view-tabs">
+    <button id="tabAtual" onclick="mostrarView('atual')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-4"/></svg>
+      Snapshot atual
+    </button>
+    <button id="tabHistorico" onclick="mostrarView('historico')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      Histórico
+    </button>
+    <button id="tabConcorrentes" class="active" onclick="mostrarView('concorrentes')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      Concorrentes
+    </button>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-avatar">R</div>
+    <div>
+      <div class="sidebar-footer-name">Ricapet</div>
+      <div class="sidebar-footer-sub">Minha conta</div>
+    </div>
+  </div>
+</nav>
+
+<div class="conteudo-principal">
 <header>
   <h1>Concorrentes <span>/ Ricapet</span></h1>
   <div class="status">
@@ -431,15 +531,10 @@
   </div>
 </header>
 
-<nav class="view-tabs">
-  <button id="tabAtual" onclick="mostrarView('atual')">Snapshot atual</button>
-  <button id="tabHistorico" onclick="mostrarView('historico')">Histórico</button>
-  <button id="tabConcorrentes" class="active" onclick="mostrarView('concorrentes')">Concorrentes</button>
-</nav>
-
 <main id="content">
   <div class="loading">buscando último snapshot…</div>
 </main>
+</div>
 
 <script>
 let historicoCache = null;
@@ -806,7 +901,13 @@ function extrairMetricasSnapshot(produto) {
   };
 }
 
-function kpiCard(label, valorHoje, valorOntem, temOntem, prefixo, serie) {
+const ICONES_KPI = {
+  money: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>',
+  cart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>',
+  eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
+};
+
+function kpiCard(label, valorHoje, valorOntem, temOntem, prefixo, serie, icone, tom) {
   let deltaHtml = '<div class="kpi-delta flat">aguardando 2º dia p/ comparar</div>';
   let corTendencia = 'flat';
   if (temOntem) {
@@ -824,7 +925,9 @@ function kpiCard(label, valorHoje, valorOntem, temOntem, prefixo, serie) {
   const sparkHtml = serie && serie.length >= 2
     ? `<span class="spark-wrap ${corTendencia}">${sparklineSVG(serie)}</span>`
     : '';
+  const iconeHtml = icone ? `<div class="stat-icon-wrap tone-${tom || 'blue'}">${ICONES_KPI[icone] || ''}</div>` : '';
   return `<div class="kpi-card">
+    ${iconeHtml}
     <div class="kpi-label">${label}</div>
     <div class="kpi-value" style="display:flex;align-items:center;justify-content:space-between;">
       <span>${prefixo}${Math.round(valorHoje).toLocaleString('pt-BR')}</span>
@@ -935,9 +1038,9 @@ function renderPainelConcorrentes() {
 
   let html = pillsHtml;
   html += `<div class="kpi-row">
-    ${kpiCard('Vendas brutas (soma)', somaVendasHoje, somaVendasOntem, temOntem, 'R$ ', serieVendas)}
-    ${kpiCard('Quantidade de vendas (soma)', somaQtdHoje, somaQtdOntem, temOntem, '', serieQtd)}
-    ${kpiCard('Visitas (soma)', somaVisitasHoje, somaVisitasOntem, temOntem, '', serieVisitas)}
+    ${kpiCard('Vendas brutas (soma)', somaVendasHoje, somaVendasOntem, temOntem, 'R$ ', serieVendas, 'money', 'green')}
+    ${kpiCard('Quantidade de vendas (soma)', somaQtdHoje, somaQtdOntem, temOntem, '', serieQtd, 'cart', 'blue')}
+    ${kpiCard('Visitas (soma)', somaVisitasHoje, somaVisitasOntem, temOntem, '', serieVisitas, 'eye', 'purple')}
   </div>`;
 
   // monta uma estrutura produtosHist "efetiva" mesmo se só houver 1 dia
