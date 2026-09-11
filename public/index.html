@@ -297,6 +297,10 @@
     flex-wrap: wrap;
     margin-bottom: 22px;
   }
+  /* Embutido no painel-entrega-turbo: a escolha do concorrente já aparece
+     no submenu da sidebar dele (via postMessage), então os pills aqui
+     dentro do conteúdo ficam redundantes. */
+  html.embutido .comp-pills { display: none; }
 
   .comp-pills button {
     background: var(--surface);
