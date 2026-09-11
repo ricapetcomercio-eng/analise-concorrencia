@@ -90,8 +90,8 @@
 
   header {
     padding: 20px clamp(16px, 4vw, 48px);
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
+    background: var(--sidebar-bg);
+    border-bottom: 1px solid var(--sidebar-border);
     display: flex;
     align-items: baseline;
     justify-content: space-between;
@@ -104,9 +104,10 @@
     font-weight: 700;
     margin: 0;
     letter-spacing: -0.01em;
+    color: #fff;
   }
 
-  header h1 span { color: var(--muted); font-weight: 400; }
+  header h1 span { color: rgba(255,255,255,0.65); font-weight: 400; }
 
   nav.view-tabs {
     display: flex;
@@ -188,7 +189,7 @@
     align-items: center;
     gap: 8px;
     font-size: 0.78rem;
-    color: var(--muted);
+    color: rgba(255,255,255,0.85);
   }
 
   .dot {
@@ -783,6 +784,14 @@ function selecionarConcorrente(nome) {
   renderPainelConcorrentes();
 }
 
+// Quando embutido no painel-entrega-turbo, o submenu da sidebar dele também
+// pode escolher o concorrente ativo aqui dentro do iframe.
+window.addEventListener('message', (event) => {
+  if (event.source !== window.parent) return;
+  if (!event.data || event.data.tipo !== 'ricapet-concorrencia-selecionar') return;
+  selecionarConcorrente(event.data.nome);
+});
+
 // Converte texto tipo "+ R$ 16.600" ou "10,7%" ou "+ 240" em número
 function parseNumero(str) {
   if (str === undefined || str === null) return null;
@@ -973,6 +982,13 @@ function renderPainelConcorrentes() {
 
   if (!concorrenteAtivoNome || !nomes.includes(concorrenteAtivoNome)) {
     concorrenteAtivoNome = nomes[0];
+  }
+
+  // Embutido via iframe no painel-entrega-turbo: avisa o painel host a
+  // lista atual de concorrentes + qual está ativo, pra ele espelhar os
+  // mesmos botões no submenu da própria sidebar (igual Dashboard/Ponto).
+  if (window.self !== window.top) {
+    window.parent.postMessage({ tipo: 'ricapet-concorrencia-lista', nomes, ativo: concorrenteAtivoNome }, 'https://painel-entrega-turbo.vercel.app');
   }
 
   let pillsHtml = '<div class="comp-pills">';
