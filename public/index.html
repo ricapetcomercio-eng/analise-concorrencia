@@ -508,7 +508,7 @@
     <button type="button" class="sidebar-editar-btn" id="btnEditarPaineis" title="Reordenar menu">✎</button>
   </div>
 
-  <a class="sidebar-link" href="https://painel-entrega-turbo.vercel.app/" data-menu-key="dashboard">
+  <a class="sidebar-link" href="https://ricapetadministrativo.vercel.app/" data-menu-key="dashboard">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
     Dashboard
   </a>
@@ -518,17 +518,17 @@
     Análise de Concorrência
   </a>
 
-  <a class="sidebar-link" href="https://painel-estoque-adesivo-three.vercel.app/" data-menu-key="estoque">
+  <a class="sidebar-link" href="https://ricapetadministrativo.vercel.app/estoque.html" data-menu-key="estoque">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8L12 3 3 8l9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
     Estoque Adesivo
   </a>
 
-  <a class="sidebar-link" href="https://ricapet-ponto-admin.vercel.app" data-menu-key="ponto">
+  <a class="sidebar-link" href="https://ricapetadministrativo.vercel.app/ponto.html" data-menu-key="ponto">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
     Ponto
   </a>
 
-  <a class="sidebar-link" href="https://painel-entrega-turbo.vercel.app/tv.html" target="_blank" rel="noopener" data-menu-key="tv">
+  <a class="sidebar-link" href="https://ricapetadministrativo.vercel.app/tv.html" target="_blank" rel="noopener" data-menu-key="tv">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
     Painel TV
   </a>
@@ -1010,7 +1010,7 @@ function renderPainelConcorrentes() {
   // lista atual de concorrentes + qual está ativo, pra ele espelhar os
   // mesmos botões no submenu da própria sidebar (igual Dashboard/Ponto).
   if (window.self !== window.top) {
-    window.parent.postMessage({ tipo: 'ricapet-concorrencia-lista', nomes, ativo: concorrenteAtivoNome }, 'https://painel-entrega-turbo.vercel.app');
+    window.parent.postMessage({ tipo: 'ricapet-concorrencia-lista', nomes, ativo: concorrenteAtivoNome }, 'https://ricapetadministrativo.vercel.app');
   }
 
   let pillsHtml = '<div class="comp-pills">';
