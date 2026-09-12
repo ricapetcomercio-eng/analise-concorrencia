@@ -13,50 +13,72 @@
     document.documentElement.classList.add('embutido');
   }
 </script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
   :root {
-    --bg: #F6F7F4;
+    --bg: #F6F4FB;
     --surface: #FFFFFF;
-    --surface-2: #FAFBFC;
-    --border: #E6E9ED;
-    --text: #2d3436;
-    --muted: #7f8c96;
-    --up: #16a34a;
-    --up-bg: #dcfce7;
-    --down: #eb5757;
-    --down-bg: #fdeaea;
+    --surface-2: #F0EDF9;
+    --border: #E5E1F0;
+    --text: #1B2A4A;
+    --muted: #566484;
+    --up: #2F8F5B;
+    --up-bg: #E4F3EA;
+    --down: #C1443D;
+    --down-bg: #FBE7E5;
     --you: #f5a623;
     --you-bg: #fdecc8;
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
-    --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
-    --brand: #16a34a;
-    --brand-light: #dcfce7;
+    --shadow-sm: 0 1px 3px rgba(27,20,64,0.05);
+    --shadow-md: 0 4px 16px rgba(27,20,64,0.08);
+    --brand: #2F8F5B;
+    --brand-light: #E4F3EA;
     --ink-on-accent: #241f4d;
-    --page-bg: #e7e9f7;
-    --sidebar-bg: #272456;
+    --page-bg: #F6F4FB;
+    --sidebar-bg: #372F72;
     --sidebar-text: #eef2ff;
     --sidebar-muted: #9db0dd;
     --sidebar-hover: rgba(255,255,255,0.08);
     --sidebar-border: rgba(255,255,255,0.14);
+    --font-display: 'Sora', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-body: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
   }
 
   * { box-sizing: border-box; }
 
   body {
     margin: 0;
-    padding: 0;
+    padding: 20px 16px;
     background: var(--page-bg);
     color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
   }
+  h1, h2, h3, .cat-title, .table-card h3 { font-family: var(--font-display); }
 
-  .num { font-variant-numeric: tabular-nums; }
+  .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  /* ---- Moldura flutuante (mesmo padrão do painel-entrega-turbo): sidebar +
+     conteúdo lado a lado dentro de #tela-painel, com respiro/sombra/cantos
+     arredondados. A sidebar é sticky (não fixed) — acompanha o scroll sem
+     escapar da moldura. A cor de fundo da sidebar vem do gradiente do
+     próprio #tela-painel (corte duro aos 240px) porque position:sticky não
+     funciona em item de flex com align-items:stretch (limitação real de
+     navegador). Quando embutida (dentro do iframe do painel principal), a
+     moldura não se aplica — o iframe já está dentro da moldura do painel
+     que o hospeda. ---- */
+  #tela-painel {
+    display: flex; flex-direction: row; align-items: flex-start; min-height: calc(100vh - 40px);
+    border-radius: 20px; border: 1px solid var(--border); box-shadow: 0 30px 70px rgba(27,20,64,0.16);
+    background: linear-gradient(to right, var(--sidebar-bg) 0, var(--sidebar-bg) 240px, var(--surface) 240px, var(--surface) 100%);
+  }
+  html.embutido #tela-painel { display: block; border-radius: 0; box-shadow: none; background: none; min-height: 0; }
 
   /* ---- Sidebar (mesmo padrão do painel-entrega-turbo) ---- */
   .sidebar {
-    width: 240px; height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000;
-    background: var(--sidebar-bg); border-right: 1px solid var(--sidebar-border);
+    width: 240px; flex-shrink: 0; position: sticky; top: 20px; z-index: 2;
+    max-height: calc(100vh - 40px);
     padding: 20px 14px; box-sizing: border-box; overflow-y: auto;
     display: flex; flex-direction: column;
   }
@@ -75,12 +97,12 @@
   .sidebar-editar-btn.ativo { opacity: 1; color: var(--you); }
   .sidebar-link {
     display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px;
-    color: var(--sidebar-text); text-decoration: none; font-size: 13px; font-weight: 600; margin-bottom: 4px;
-    white-space: nowrap;
+    border-left: 3px solid transparent; color: var(--sidebar-text); text-decoration: none; font-size: 13px;
+    font-weight: 600; margin-bottom: 4px; white-space: nowrap; transition: background .15s ease, border-color .15s ease;
   }
   .sidebar-link:hover { background: var(--sidebar-hover); }
-  .sidebar-link.ativo { background: var(--you); color: var(--ink-on-accent); }
-  .sidebar-link.ativo svg { stroke: var(--ink-on-accent); }
+  .sidebar-link.ativo { background: rgba(255,255,255,0.12); color: #fff; border-left-color: var(--you); }
+  .sidebar-link.ativo svg { stroke: var(--you); }
   .sidebar-link svg { flex-shrink: 0; }
   .sidebar-link[data-menu-key].menu-editando { cursor: grab; }
   .sidebar-link[data-menu-key].menu-editando::before { content: '⠿'; opacity: 0.55; }
@@ -92,29 +114,35 @@
   .sidebar-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--you); color: var(--ink-on-accent); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0; }
   .sidebar-footer-name { font-size: 12px; font-weight: 700; color: var(--sidebar-text); }
   .sidebar-footer-sub { font-size: 11px; color: var(--sidebar-muted); }
-  .conteudo-principal { margin-left: 240px; }
+  .conteudo-principal { flex: 1; min-width: 0; }
   html.embutido .sidebar { display: none; }
   html.embutido .conteudo-principal { margin-left: 0; }
+  html.embutido body { padding: 0; }
+  html.embutido header { top: 0; border-top-right-radius: 0; }
   @media (max-width: 900px) {
-    .sidebar { position: static; width: 100%; height: auto; flex-direction: row; flex-wrap: wrap; border-right: none; border-bottom: 1px solid var(--sidebar-border); }
+    body { padding: 0; }
+    #tela-painel { flex-direction: column; border-radius: 0; box-shadow: none; min-height: 100vh; background: none; }
+    .sidebar { position: static; width: 100%; max-height: none; flex-direction: row; flex-wrap: wrap; background: var(--sidebar-bg); border-right: none; border-bottom: 1px solid var(--sidebar-border); }
     .sidebar-brand, .sidebar-footer, .sidebar-separador { display: none; }
-    .conteudo-principal { margin-left: 0; }
+    header { top: 0 !important; border-top-right-radius: 0 !important; }
   }
 
   header {
     padding: 0 clamp(16px, 4vw, 48px);
     min-height: 64px;
     box-sizing: border-box;
-    background: var(--sidebar-bg);
+    background: linear-gradient(135deg, var(--sidebar-bg) 0%, #443A8C 100%);
+    box-shadow: 0 2px 14px rgba(55,47,114,0.14);
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 12px;
-    position: sticky; top: 0; z-index: 5;
+    position: sticky; top: 20px; z-index: 5; border-top-right-radius: 20px;
   }
 
   header h1 {
+    font-family: var(--font-display);
     font-size: 21px;
     font-weight: 700;
     margin: 0;
@@ -146,10 +174,12 @@
   nav.view-tabs button:hover { background: var(--sidebar-hover); }
 
   nav.view-tabs button.active {
-    background: var(--you);
-    color: var(--ink-on-accent);
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    border-left-color: var(--you);
     font-weight: 700;
   }
+  nav.view-tabs button.active svg { stroke: var(--you); }
 
   .hist-controls {
     display: flex;
@@ -210,14 +240,14 @@
   .dot {
     width: 7px; height: 7px; border-radius: 50%;
     background: var(--up);
-    box-shadow: 0 0 0 0 rgba(22,163,74,0.6);
+    box-shadow: 0 0 0 0 rgba(47,143,91,0.6);
     animation: pulse 2.2s infinite;
   }
 
   @keyframes pulse {
-    0%   { box-shadow: 0 0 0 0 rgba(22,163,74,0.45); }
-    70%  { box-shadow: 0 0 0 7px rgba(22,163,74,0); }
-    100% { box-shadow: 0 0 0 0 rgba(22,163,74,0); }
+    0%   { box-shadow: 0 0 0 0 rgba(47,143,91,0.45); }
+    70%  { box-shadow: 0 0 0 7px rgba(47,143,91,0); }
+    100% { box-shadow: 0 0 0 0 rgba(47,143,91,0); }
   }
 
   main {
@@ -494,6 +524,7 @@
 </head>
 <body>
 
+<div id="tela-painel">
 <nav class="sidebar">
   <div class="sidebar-brand">
     <img class="sidebar-brand-icon" src="logo-ricapet.png" alt="Ricapet">
@@ -574,6 +605,7 @@
   <div class="loading">buscando último snapshot…</div>
 </main>
 </div>
+</div><!-- fecha #tela-painel -->
 
 <script>
 let historicoCache = null;
