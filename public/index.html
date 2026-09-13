@@ -61,13 +61,13 @@
 
   /* ---- Sidebar (mesmo padrão do painel-entrega-turbo) ---- */
   .sidebar {
-    width: 240px; height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000;
+    width: 212px; height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000;
     background: var(--sidebar-bg); border-right: 1px solid var(--sidebar-border);
-    padding: 20px 14px; box-sizing: border-box; overflow-y: auto;
+    padding: 16px 12px; box-sizing: border-box; overflow-y: auto;
     display: flex; flex-direction: column;
   }
-  .sidebar-brand { display: flex; align-items: center; gap: 10px; padding: 2px 10px 16px; margin-bottom: 12px; border-bottom: 1px solid var(--sidebar-border); }
-  .sidebar-brand-icon { width: 40px; height: 40px; object-fit: contain; flex-shrink: 0; }
+  .sidebar-brand { display: flex; align-items: center; gap: 8px; padding: 2px 8px 14px; margin-bottom: 10px; border-bottom: 1px solid var(--sidebar-border); }
+  .sidebar-brand-icon { width: 32px; height: 32px; object-fit: contain; flex-shrink: 0; }
   .sidebar-brand-name { font-size: 14px; font-weight: 800; color: var(--sidebar-text); line-height: 1.2; }
   .sidebar-brand-sub { font-size: 11px; color: var(--sidebar-muted); }
   .sidebar-titulo { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--sidebar-muted); padding: 0 10px; margin-bottom: 10px; }
@@ -80,9 +80,9 @@
   .sidebar-editar-btn:hover { opacity: 1; background: var(--sidebar-hover); }
   .sidebar-editar-btn.ativo { opacity: 1; color: var(--you); }
   .sidebar-link {
-    display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px;
-    border-left: 3px solid transparent; color: var(--sidebar-text); text-decoration: none; font-size: 13px;
-    font-weight: 600; margin-bottom: 4px; white-space: nowrap; transition: background .15s ease, border-color .15s ease;
+    display: flex; align-items: center; gap: 8px; padding: 7px 9px; border-radius: 7px;
+    border-left: 1px solid transparent; color: var(--sidebar-text); text-decoration: none; font-size: 13px;
+    font-weight: 600; margin-bottom: 2px; white-space: nowrap; transition: background .15s ease, border-color .15s ease;
   }
   .sidebar-link:hover { background: var(--sidebar-hover); }
   .sidebar-link.ativo { background: #372F72; color: #F3F1FB; border-left-color: #8B7CF6; }
@@ -98,7 +98,7 @@
   .sidebar-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--you); color: var(--ink-on-accent); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0; }
   .sidebar-footer-name { font-size: 12px; font-weight: 700; color: var(--sidebar-text); }
   .sidebar-footer-sub { font-size: 11px; color: var(--sidebar-muted); }
-  .conteudo-principal { margin-left: 240px; }
+  .conteudo-principal { margin-left: 212px; }
   html.embutido .sidebar { display: none; }
   html.embutido .conteudo-principal { margin-left: 0; }
   @media (max-width: 900px) {
@@ -139,14 +139,14 @@
   }
 
   nav.view-tabs button {
-    display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+    display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
     background: none;
-    border: none; border-left: 3px solid transparent;
+    border: none; border-left: 1px solid transparent;
     color: var(--sidebar-text);
     font-size: 13px;
     font-weight: 600;
-    padding: 9px 10px;
-    border-radius: 8px;
+    padding: 7px 9px;
+    border-radius: 7px;
     cursor: pointer;
     font-family: inherit;
   }
