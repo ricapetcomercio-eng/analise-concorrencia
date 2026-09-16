@@ -113,24 +113,33 @@
     box-sizing: border-box;
     background: var(--page-bg);
     border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 5;
+  }
+
+  .hrow {
+    min-height: 64px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 12px;
-    position: sticky; top: 0; z-index: 5;
   }
 
   header h1 {
     font-family: var(--font-display);
-    font-size: 21px;
+    font-size: 1.05rem;
     font-weight: 700;
     margin: 0;
     letter-spacing: -0.01em;
     color: var(--text);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
   }
 
-  header h1 span { color: var(--muted); font-weight: 400; }
+  .h-title-row { display: flex; align-items: center; gap: 9px; }
+  .h-title-row span { color: var(--muted); font-weight: 400; }
+  .h-sub { font-size: 0.72rem; font-weight: 500; color: var(--muted); }
 
   nav.view-tabs {
     display: flex;
@@ -574,11 +583,13 @@
 
 <div class="conteudo-principal">
 <header>
-  <h1>Concorrentes <span>/ Ricapet</span></h1>
+<div class="hrow">
+  <h1><span class="h-title-row">Concorrentes <span>/ Ricapet</span></span><span class="h-sub">Vendas, preços e posição dos concorrentes monitorados</span></h1>
   <div class="status">
     <span class="dot"></span>
     <span id="lastUpdated">carregando…</span>
   </div>
+</div>
 </header>
 
 <main id="content">
