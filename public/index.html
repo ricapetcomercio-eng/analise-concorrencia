@@ -648,6 +648,18 @@ function fmtDiaCurto(diaISO) {
   return `${dia}/${mes}`;
 }
 
+// Textos vindos do scraper (títulos de anúncio, vendedores, subcategorias)
+// entram no HTML; escapar evita que um título com < & " quebre a tabela
+// ou injete código no painel.
+function esc(v) {
+  return String(v ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function renderTable(rows) {
   if (!rows || rows.length === 0) {
     return '<div class="empty" style="padding:20px;">sem linhas</div>';
@@ -656,7 +668,7 @@ function renderTable(rows) {
   const isYouRow = (row) => row['_voce'] === true;
 
   let html = '<table><thead><tr>';
-  headers.forEach(h => html += `<th>${h}</th>`);
+  headers.forEach(h => html += `<th>${esc(h)}</th>`);
   html += '</tr></thead><tbody>';
 
   rows.forEach(row => {
@@ -665,7 +677,7 @@ function renderTable(rows) {
     headers.forEach(h => {
       const val = row[h] ?? '';
       const numeric = /^[+\-]?\s?R?\$?\s?[\d.,]+%?$/.test(val);
-      html += `<td class="${numeric ? 'num' : ''}">${val}</td>`;
+      html += `<td class="${numeric ? 'num' : ''}">${esc(val)}</td>`;
     });
     html += '</tr>';
   });
@@ -687,7 +699,7 @@ function render(data) {
   let html = '';
   data.categorias.forEach(cat => {
     html += `<div class="cat-block">
-      <h2 class="cat-title">${cat.subcategoria}</h2>
+      <h2 class="cat-title">${esc(cat.subcategoria)}</h2>
       <div class="tables-row">
         <div class="table-card">
           <h3>Sua posição</h3>
@@ -756,7 +768,7 @@ function renderHistorico(data) {
     const selectId = `sel-${idx}`;
 
     html += `<div class="cat-block">
-      <h2 class="cat-title">${subNome}</h2>
+      <h2 class="cat-title">${esc(subNome)}</h2>
       <div class="hist-controls">
         <span>${nomesVendedor.length} vendedor(es) · ${datas.length} dia(s)</span>
       </div>
@@ -769,10 +781,10 @@ function renderHistorico(data) {
 
     nomesVendedor.forEach(nome => {
       const ehVoce = /RICAPET|VOC[EÊ]/i.test(nome);
-      html += `<tr${ehVoce ? ' class="you"' : ''}><td>${nome}</td>`;
+      html += `<tr${ehVoce ? ' class="you"' : ''}><td>${esc(nome)}</td>`;
       datas.forEach(d => {
         const pos = vendedores[nome][d];
-        html += `<td class="num">${pos !== undefined ? pos : '—'}</td>`;
+        html += `<td class="num">${pos !== undefined ? esc(pos) : '—'}</td>`;
       });
       html += '</tr>';
     });
@@ -901,13 +913,13 @@ function renderTabelaMetrica(nomesProdutoHist, produtosHist, datas, metricKey) {
       if (reg && reg.imagem) { imagemUrl = reg.imagem; break; }
     }
     const thumbHtml = imagemUrl
-      ? `<img class="produto-thumb" src="${imagemUrl}" alt="" loading="lazy" onerror="this.style.display='none'">`
+      ? `<img class="produto-thumb" src="${esc(imagemUrl)}" alt="" loading="lazy" onerror="this.style.display='none'">`
       : `<div class="produto-thumb"></div>`;
     // o Mercado Livre não expõe um link direto do anúncio nessa tabela de
     // métricas, então linkamos para a busca pelo nome do produto (sem o
     // sufixo "(2)", "(3)" que usamos aqui só para diferenciar duplicatas)
     const linkUrl = buildBuscaMercadoLivreUrl(nome);
-    const nomeHtml = `<a class="produto-link" href="${linkUrl}" target="_blank" rel="noopener noreferrer">${nome}</a>`;
+    const nomeHtml = `<a class="produto-link" href="${linkUrl}" target="_blank" rel="noopener noreferrer">${esc(nome)}</a>`;
 
     html += `<tr><td class="produto-cell"><div class="produto-linha">${thumbHtml}${nomeHtml}</div></td>`;
     let valorAnterior = null;
@@ -919,7 +931,7 @@ function renderTabelaMetrica(nomesProdutoHist, produtosHist, datas, metricKey) {
       if (valorAnterior !== null) {
         seta = trendHTML(calcDelta(valorAnterior, valorNum), valorAnterior === 0);
       }
-      html += `<td class="num">${bruto !== undefined && bruto !== null ? bruto : '—'}${seta}</td>`;
+      html += `<td class="num">${bruto !== undefined && bruto !== null ? esc(bruto) : '—'}${seta}</td>`;
       if (valorNum !== null) valorAnterior = valorNum;
     });
     html += '</tr>';
@@ -1039,8 +1051,7 @@ function renderPainelConcorrentes() {
   let pillsHtml = '<div class="comp-pills">';
   nomes.forEach(n => {
     const ativo = n === concorrenteAtivoNome ? ' active' : '';
-    const nomeEscapado = n.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-    pillsHtml += `<button class="${ativo}" data-nome="${nomeEscapado}">${n}</button>`;
+    pillsHtml += `<button class="${ativo}" data-nome="${esc(n)}">${esc(n)}</button>`;
   });
   pillsHtml += '</div>';
 
